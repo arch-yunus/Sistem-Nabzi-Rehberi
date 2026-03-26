@@ -1,0 +1,15 @@
+# IDEs
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Monitoring data (local persistence)
+prometheus_data/
+grafana_data/
+
+# Environment
+.env
+*.log
