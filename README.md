@@ -59,6 +59,72 @@ docker-compose up -d
 
 ---
 
+---
+
+## 🧩 Teknik Mimari (Technical Architecture)
+
+Sistem Nabzı laboratuvarı, verinin toplanmasından görselleştirilmesine kadar olan süreci standart bir pipeline üzerinden yönetir. Aşağıdaki diyagram, laboratuvar ortamındaki bileşenlerin birbirleriyle nasıl etkileşime girdiğini göstermektedir:
+
+```mermaid
+graph TD
+    subgraph "Target Systems (Host/Containers)"
+        NE[Node Exporter]
+        CA[cAdvisor]
+        CM[Custom App Metrics]
+    end
+
+    subgraph "Storage & Processing"
+        PR[(Prometheus TSDB)]
+    end
+
+    subgraph "Visualization & Alerting"
+        GR[Grafana Dashboards]
+        AM[Alertmanager]
+    end
+
+    NE -->|Scrape /metrics| PR
+    CA -->|Scrape /metrics| PR
+    CM -->|Scrape /metrics| PR
+    PR -->|Query| GR
+    PR -->|Trigger| AM
+    AM -->|Notification| Slack[Slack/Telegram/Email]
+```
+
+---
+
+## 🎯 Neden Sistem İzleme? (Deep Dive)
+
+Sistem izleme (monitoring), sadece bir ekranın "yeşil" olduğunu doğrulamak değildir. Modern altyapılarda izleme, şu üç kritik sütun üzerine inşa edilir:
+
+1.  **Gözlemlenebilirlik (Observability):** Sistemin dış çıktılarından (metrikler, loglar, trace'ler) iç durumunu ne kadar iyi anlayabildiğimizin ölçüsüdür. "Neden hata alıyoruz?" sorusunun cevabıdır.
+2.  **Güvenilirlik (Reliability):** Sistemin beklenen işlevleri, belirlenen süre ve koşullarda yerine getirebilme kapasitesidir.
+3.  **Hızlı Müdahale (MTTR):** Ortalama düzeltme sürenizi (Mean Time to Repair) minimize etmek, iş sürekliliği için hayati önem taşır. Veriye dayalı alarm mekanizmaları, sorunun kök nedenine saniyeler içinde inmenizi sağlar.
+
+---
+
+## 📡 Gelişmiş Senaryolar & Use Cases
+
+Rehberimizdeki araçlar ve metodolojiler, şu gerçek dünya senaryolarında doğrudan uygulanabilir:
+
+*   **Database Performance:** PostgreSQL veya MySQL üzerinde yavaş sorguların (slow queries) ve bağlantı havuzu (connection pool) doygunluğunun izlenmesi.
+*   **Kubernetes Cluster Health:** Pod'ların kaynak kullanımı, OOM (Out Of Memory) hataları ve node bazlı darboğazların tespiti.
+*   **Application APM:** Bir web uygulamasının uçtan uca yanıt süresinin (latency) ve hata oranlarının (error rate) takibi.
+
+---
+
+## ❓ Sıkça Sorulan Sorular (SSS)
+
+**1. Prometheus neden "push" yerine "pull" yöntemini kullanıyor?**
+Pull yöntemi, hedef sistemlerin (target) izleme sistemini meşgul etmesini önler ve bir hedefin çevrimdışı olup olmadığını (down state) saptamayı kolaylaştırır. Ayrıca merkezi bir konfigürasyon yönetimi sağlar.
+
+**2. USE ve RED metodolojileri arasındaki fark nedir?**
+USE metodu **altyapı kaynaklarına** (CPU, Disk vb.) odaklanırken; RED metodu **servislere ve isteklere** (HTTP requests, API calls) odaklanır. Tam bir gözlemlenebilirlik için ikisinin de kullanılması önerilir.
+
+**3. cAdvisor ne işe yarar?**
+Docker container'larınızın CPU, RAM ve I/O kaynaklarını izlemek için en etkili araçtır. Özellikle container'ların kaynak sınırlarına (limits) ne kadar yaklaştığını görmek için kritiktir.
+
+---
+
 ## 👨‍🏫 Yazar ve Vizyon
 
 Bu proje, **Bahattin Yunus Çetin (IT Architect)** tarafından, Türkiye'deki bilişim ekosisteminde sistem mühendisliği ve altyapı yönetimi disiplinlerinin teknik derinliğini ve vizyonunu küresel standartlara taşımak amacıyla hayata geçirilmiştir. Burada paylaşılan dokümantasyonlar ve uygulama kodları, sadece tutorial tadında değil; büyük ölçekli kurumsal altyapılarda uygulanmış tecrübelerin, endüstriyel best-practice'lerin ve yüksek erişilebilirlik (HA) mimarilerinin bir damıtılmış sonucudur. Amacımız, sadece araçları kullanmayı değil, sistemlerin "haldinden anlayan" mühendisler yetişmesine katkı sağlamaktır.
